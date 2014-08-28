@@ -1,0 +1,7 @@
+To:<DEST_NAME>
+From:<SENDER_SERVER>
+Subject:Success Mail
+List Of files which have failed during Transfer
+
+<FILES_FAILED>
+
