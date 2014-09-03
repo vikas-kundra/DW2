@@ -8,7 +8,7 @@ file_name=$APP_NAME$date_val
 
 
 
-###########################Function To Send Alert Emails##############################################################################
+##########################################Function To Send Alert Emails##############################################################################
 function ErrorEmail()
 {
 	cd $WORK_DIR
@@ -46,12 +46,14 @@ if [[ ! -d "$SHIPPEDLOG_DIR" ]]; then
 	#statements
 	mkdir $SHIPPEDLOG_DIR
 fi
-cd $SHIPPEDLOG_DIR
+
 ##Creating gzip of all the files Present in DBLOG Directory
-tar cvzf $file_name.tar.gz $DBLOGS_DIR
+cd ..
+tar cvzf $file_name.tar.gz Dblogs
 if [[ $? -eq 0 ]]; then
 	#statements
 	echo "All Files have been moved Successfully"|
+	mv $file_name.tar.gz $SHIPPEDLOG_DIR
 	rm $DBLOGS_DIR/*
 
 
@@ -75,6 +77,7 @@ fi
 function Split()
 {
 
+
 cd $SHIPPEDLOG_DIR
 compressed_records_number=$(ls -l|awk '{print $9}'|grep -v MD5|grep .tar|wc -l)
 
@@ -95,14 +98,17 @@ echo "Value of compressed Records is $compressed_records_value"
 for compressed_record in $compressed_records_value
 do
 cd $ARCHIEVE_DIR
-split -b$BYTE_VALUE $SHIPPEDLOG_DIR/$compressed_record  $compressed_record.
+split -b20480 $SHIPPEDLOG_DIR/$compressed_record  $compressed_record.
 last_val=$?
 if [[ $last_val -eq 0 ]]; then
 	#statements
 index=1
 echo "Value in Comprssed Record is $compressed_record"
 file_val="$compressed_record"
+str="lists"
+y="$file_name"_$str
 
+touch $y
 ##Renaming Split Files
 for file in $compressed_record.*
 do
@@ -119,6 +125,7 @@ file_collection=$(ls -l|awk '{print $9}'|grep $compressed_record)
 for fil in $file_collection
 do
 #echo $x
+echo $fil>>$y
 touch "$fil"_MD5	
 md5sum "$fil">"$fil"_MD5
 done
@@ -167,31 +174,31 @@ val=1
 
 ##Loop For The Number Of Attempts For Retrial
 while [[ $val -le $NUMBER_OF_RETRIAL ]]; do
-	#statements
+	
 	
 echo "Value for Retrial Attempts is $val"
-rsync -a -i  -e ssh --bwlimit=$BAND_WIDTH_LIMIT --log-file=./Result2	  --timeout=$TIMEOUT  $HOME_FOLDER/$1 $DEST_NAME@$DEST_IP:$DESTINATION_FOLDER
+rsync -rauzvq -e "ssh -o ConnectTimeout=2 -o ServerAliveInterval=5" --bwlimit=0.9  $HOME_FOLDER/$1 $DEST_NAME@$DEST_IP:$DESTINATION_FOLDER
 
 Last_Rec=$?
 echo "Value for exit status is $Last_Rec"
-if [[ Last_Rec -eq 0 ]]; then
+if [[ $Last_Rec -eq 0 ]]; then
 	#statements
 	echo "Transfer Is SuccessFul..After Retrial"
 	return 0
 
-elif [[ Last_Rec -eq 23 ]]; then
+elif [[ $Last_Rec -eq 23 ]]; then
 	#statements
 	echo "Error in local Directory Path"
 	return 1
 
-elif [[ Last_Rec -eq 11 ]]; then
+elif [[ $Last_Rec -eq 11 ]]; then
 	echo "Error In Destination Directory Path"
 	return 1
 		#statements
-elif [[ Last_Rec -eq 255 ]]; then
+elif [[ $Last_Rec -eq 255 ]]; then
 	#statements
 	echo "Remote Connection Is not establishing.."
-	sleep 10
+	sleep 5
 #	break
 
 fi
@@ -211,6 +218,7 @@ function Transfer(){
 #rsync -a -i  -e ssh --bwlimit=20 --log-file=./Result2	  --timeout=5  /home/ubuntu/temp/Work/Middle/$1  $vikas2@$192.168.0.213:~/temp/Work/Middle
 
 ####### Checking If File Has Already been Transferred#############
+echo "Inside Transfer"
 echo $1|grep Sent
 pipe_v=${PIPESTATUS[1]}
 
@@ -233,11 +241,10 @@ if [[ $pipe_v -eq 0 ]]; then
 else
 
 ##Transferring File To Remote Server
-rsync -a -i  -e ssh --bwlimit=$BAND_WIDTH_LIMIT --log-file=./Result2	  --timeout=$TIMEOUT  $HOME_FOLDER/$1 $DEST_NAME@$DEST_IP:$DESTINATION_FOLDER
+#rsync -a -i  -e ssh --bwlimit=1   --progress --timeout=2  $HOME_FOLDER/$1 $DEST_NAME@$DEST_IP:$DESTINATION_FOLDER
+rsync -rauzvq -e "ssh -o ConnectTimeout=2 -o ServerAliveInterval=5" --bwlimit=0.9 $HOME_FOLDER/$1 $DEST_NAME@$DEST_IP:$DESTINATION_FOLDER
 Last_Rec=$?
-echo "Inside Transfer"
-echo "Value for exit status is $Last_Rec"
-if [[ Last_Rec -eq 0 ]]; then
+if [[ $Last_Rec -eq 0 ]]; then
 	#statements
 	file_name_sent="$1_Sent"
 	mv "$1" "$1_Sent"
@@ -246,13 +253,8 @@ if [[ Last_Rec -eq 0 ]]; then
 	echo "Transfer Is SuccessFul..Exiting This Loop"
 	mv $file_name_sent $LOG_SUCCESS_DIR
 
-	#statements
-#elif [[ Last_Rec -eq 20 ]]; then
-	#statements
-#	echo "Abrupt Ending Of Script"
-#	break
-
 else 
+ echo "Attempting retrial Logic"
    ReTrial $1
    last_command_value=$?
    echo "Value in Last Variab is $last_command_value"
@@ -269,6 +271,16 @@ fi
 fi
 
 }
+#######################################For Transferring Lists Of Split Parts###########################################################
+function TransferLists(){
+
+cd $ARCHIEVE_DIR
+file_list=$(ls -l|awk '{print $9}'|grep "list")
+Transfer $file_list
+
+}
+
+
 
 #######################################For Transferring MD5 Files#######################################################################
 function TransFerMD(){
@@ -286,21 +298,23 @@ done
 
 
 ####################################Function To Transfer Archieves######################################################################
-function TransferArchieves{
+function TransferArchieves(){
 
-cd $ARCHIEVE_DIR
+cd  $ARCHIEVE_DIR
 ##Searching for all Files except MD5 in Archieve Directory
-file_archieve_collection=$( ls -l|awk '{print $9}'|grep -v MD5|grep tar.gz)
+file_archieve_collection=$( ls -l|awk '{print $9}'|grep -v MD5|grep -v lists|grep tar.gz)
 #echo "Inside TransferMD"
 for file_archieve in $file_archieve_collection
 do
     Transfer $file_archieve
 done
+
 }
 
+####################################Function Which Is Used To Send Email After Transfer####################################################
 function SendEmail(){
 
-########################################List of files Which Have been Transferred######################################################
+##List of files Which Have been Transferred
 cd $LOG_SUCCESS_DIR
 file_success_collection=$(ls -l|awk '{print $9}'|grep Sent)
 l=" "
@@ -317,7 +331,7 @@ done
 #cat EFile|sed "s/<FILES_SUCCESS>/$l/g"
 
 
-################################################List Of Files Which  Have Failed In Transfer##################################################
+##List Of Files Which  Have Failed In Transfer
 cd $LOG_FAILED_DIR
 file_failed_collection=$(ls -l|awk '{print $9}'|grep .tar.gz)
 l1=" "
@@ -338,7 +352,7 @@ m2=$(date)
 echo "Date is $m2"
 
 if [[ $v -ne 0 ]]; then
-	#statements
+
 
 echo "Inside Success Loop"
 touch emailFile
@@ -348,7 +362,7 @@ fi
 
 
 if [[ $v1 -ne 0 ]]; then
-	#statements
+
 
 echo "Inside Failed Loop"
 touch emailFailedFile
@@ -364,10 +378,12 @@ fi
 
 #Order Of Function Calls
 Compress
-Split
-#LogFailedCheck
+	Split
+LogFailedCheck
+TransferLists
 TransFerMD
-TransferArchieves
-SendEmail
+#TransferArchieves
+#SendEmail
 
+	
 	
