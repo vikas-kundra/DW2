@@ -24,6 +24,57 @@ A dummy table Named Dummy_Table which will hold the dump of  TAB separated File
 
 bcp DW.dbo.DS3 in “/home/ubuntu/Downloads/DataDocument” -f Char.fmt -S <server_name> -U<user_name> -P<password>
 
+###**Table Break Down**
+|DB Column   	|File Column   	|Comment   	|Data Type   	|Hypothesis   	|
+|---	|---	|---	|---	|---	|
+|Dealer_Id   	|Dealer_Id   	|It represents the id of every Dealer,which is used to uniquely identify them   	|Varchar(8000)   	|It is being used in almost all of the hypothesis   	|
+|   RO_Number	| Ro_Number	|It represents the Repair order number which is used to uniquely identify them	|   Varchar(8000)	|   	|
+|Ro_Close_Date   	|Ro_Close_Date   	|It represents the closing date of Repair Order   	|Varchar(8000)   	|   	|
+|Customer_Num_Dealer   	|Customer_Num_Dealer   	|It represents the Customer Number given by dealer to Customer   	|Varchar(8000)	|   	|
+|Customer_Full_Name   	|Customer_Full_Name   	|Depicts the name of Customer   	|Varchar(8000)   	|   	|
+|County   	|County   	| Provides the name of County  	|Varchar(8000)   	|   	|
+|State   	|State   	| Provides the name of County  	|Varchar(8000)   	|   	|
+|Zip   	|Zip   	|Provides the name of County   	|Varchar(8000)   	|   	|
+|Standard_Address   	|Standardized_Address   	|Depicts whether the address is Standardized   	|Varchar(8000)   	|   	|
+|VIN   	|VIN   	|Represents the Vehicle number   |Varchar(8000)   	|   	|
+| Mileage  	|Mileage   	|Depicts the Mileage of vehicle   	|Varchar(8000)   	|   	|
+|Technician_Number   	|Technician_Number   	|Id provided to technician by dealers   	|Varchar(8000)   	|   	|
+|Op_Codes   	|Op_Codes   	|Operation Code for the various operations   	|Varchar(8000)   	|   	|
+|Parts_Amount   	|Parts_Amount   	|   	|Varchar(8000)   	|   	|
+|Labour_Amount   	|Labour_Amount   	|   	|Varchar(8000)   	|   	|
+|Parts_Number   	|Parts_Number 	|   	|Varchar(8000)   	|   	|
+|Ro_Total   	|Ro_Total   	|   	|Varchar(8000)   	|   	|
+|Customer_Name_Type   	|Customer_Name_Type   	|   	|Varchar(8000)   	|   	|
+|Ro_Line_Num   	|Ro_Line_Num   	|   	|Varchar(8000)   	|   	|
+|Labor_Time   	|Labor_Time   	|   	|Varchar(8000)   	|   	|
+|Vehicle_Category   	|Vehicle_Category   	|Provides information about the segment of vehicle   	|Varchar(8000)   	|   	|
+|Raw_Dealer_Operation_Code   	|Raw_Dealer_Operation_Code     	|   	|Varchar(8000)   	|   	|
+|Customer_Labor_Amount   	|Customer_Labor_Amount   	|   	|Varchar(8000)   	|   	|
+|Customer_Parts_Amount   	|Customer_Parts_Amount   	|   	|Varchar(8000)   	|   	|
+|Customer_Misc_Amount   	|Customer_Misc_Amount   	|   	|Varchar(8000)   	|   	|
+|Warranty_Parts_Amount   	|Warranty_Parts_Amount   	|   	|Varchar(8000)   	|   	|
+|Warranty_Labor_Amount   	|Warranty_Labor_Amount   	|   	|Varchar(8000)   	|   	|
+|Warranty_Misc_Amount   	|Warranty_Misc_Amount   	|   	|Varchar(8000)   	|   	|
+|Internal_Labor_Amount   	|Internal_Labor_Amount   	|   	|Varchar(8000)   	|   	|
+|Internal_Parts_Amount   	|Internal_Parts_Amount   	|   	|Varchar(8000)   	|   	|
+|Internal_Misc_Amount   	|Internal_Misc_Amount   	|   	|Varchar(8000)   	|   	|
+|Email_Address   	|Email_Address   	|Holds the information of the email address of customer   	|Varchar(8000)   	|   	|
+|Model_Year   	|Model_Year   	|Holds the information of year in which vehicle was manufactured   	|Varchar(8000)   	|   	|
+|Make_Name   	|Make_Name   	|Holds the information of the maunfacturer of vehicle   	|Varchar(8000)   	|   	|
+|Customer_First_Name   	|Customer_First_Name   	|   	|Varchar(8000)   	|   	|
+|Customer_Last_Name   	|Customer_Last_Name   	|   	|Varchar(8000)   	|   	|
+|Description_1   	|Description_1   	|   	|Varchar(8000)   	|   	|
+|Description_2   	|Description_2   	|   	|Varchar(8000)   	|   	|
+|Labor_Per_Op   	|Labor_Per_Op   	|   	|Varchar(8000)   	|   	|
+|Parts_Per_Op   	|Parts_Per_Op   	|   	|Varchar(8000)   	|   	|
+|FileName   	|FileName   	|   	|Varchar(8000)   	|   	|
+|File_Mtime   	|File_Mtime   	|Provides the details about the last time when file was modified   	|Varchar(8000)   	|   	|
+|   	|   	|   	|Varchar(8000)   	|   	|
+|   	|   	|   	|Varchar(8000)   	|   	|
+
+
+
+
 ###**Observation And Encoding**
 On Analysing table after dump, it was found that 1 row was missing in the Database.In order to find out that row Dealer_Id and Ro_Number were exported from table Dummy_Table in file ServerDB.Dealer Id and Ro Number were also imported from TAB separated file using awk command in file LocalDB.After that both files were sorted and compared with **DIFF** command, it was found that row having **Dealer Id=51018** and **Ro Number='18079875'** was missing.On analysing that row, it was detected that it was the presence of non Ascii character at the end of Description 2 which prevented TAB for getting detected.
 
