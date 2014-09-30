@@ -3,12 +3,12 @@
 ###**Initial Analysis**
 After visually analyzing more than 1000 Rows in LibreOffice Calc, few anomalies which were found in data are
 
-1. Customer Number Dealer is Not Present For Various Records
-2. County is Not Present For Various Records
-3. Various Zip Codes Which Are Entered Are Not Correct
-4. Wrong Value Of Mileage is Present in Few Records(For Instance 2)
-5. Part Numbers Are Not Present For Every OpCode(Not Sure Whether this is Anomaly)
-6. Vehicle Category Missing For Every Record
+1. Customer_Number_Dealer is not present for various Records
+2. County is not present for various Records
+3. Various Zip Codes which are entered are not correct
+4. Wrong value of Mileage is present in few Records(For Instance 2)
+5. Part Numbers are not present for Every OpCode(Not Sure Whether this is Anomaly)
+6. Vehicle Category missing for every Record
 
 ###**Data Extraction**
 Even though initial investigation of 1000 records did gave us idea about how data is structured
@@ -124,7 +124,7 @@ Using Above Python Script,Converted_File Contains 59 rows, and it can be further
             
 ###**HYPOTHESIS AND VALIDATIONS**
 
-#####1. Hypothesis to be proven is  Ro_Number can Be Primary Key
+#####1. *Hypothesis to be proven is  Ro_Number can Be Primary Key*
 
 **Validating Hypothesis**
 
@@ -137,7 +137,7 @@ Total Records Present =1857537
 **41.358%** data Suggests that Ro_Number is unique.Rest of the data did not satisfy this relation, which is even less than half of the Total data present,Hence this hypothesis cannot be used while using this data .Hence this hypothesis is false.
 
 
-#####2. Hypothesis to be proven is Customer_Num_Dealer is Unique Throughout
+#####2. *Hypothesis to be proven is Customer_Num_Dealer is Unique Throughout*
 
 
 **Validating Hypothesis**
@@ -150,7 +150,7 @@ Total Records Present =1857537
 
 Nearly **20.0588%**  of the data have unique Customer_Num_Dealer .So if only that much amount of data is taken for consideration, only then this hypothesis would be true, otherwise based on above result, this hypothesis is false. 
 
-######3. Hypothesis to be proven is Technician Data is Not Consistent
+######3. *Hypothesis to be proven is Technician Data is Not Consistent*
 
 **Validating Hypothesis**
 
@@ -211,7 +211,7 @@ Output Obtained
 
 Thus,Almost *20.833 %* of dealers Technician_Number consists of varchar, which is not confined to only 1 or 2 Dealer.Hence we can conclude from above Observation that, presence of characters in Technician_Number does not prove that data is inconsistent.Hence above Hypothesis has been proved false.
 
-#####4. Hypothesis to be proven is Parts_Amount And Labour_Amount Is Split Up in Customer,Internal And Warranty Parts
+#####4. *Hypothesis to be proven is Parts_Amount And Labour_Amount Is Split Up in Customer,Internal And Warranty Parts*
 
 *Requirements:*
 
