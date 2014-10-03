@@ -1128,8 +1128,123 @@ Top 5 Dealers can <>
     Set Total_Expend=#Labour_Per_Op.Labour_Per_Op+#Parts_Per_Op.Parts_Per_Op 
     From #Labour_Per_Op,#Parts_Per_Op,#Exp_Final 
     Where #Exp_Final.Dealer_Id=#Labour_Per_Op.Dealer_Id and #Exp_Final.Dealer_Id=#Parts_Per_Op.Dealer_Id
+    
+###Other Analysis
+
+**Analysing Dealers on the basis of Warranty amount**
+
+    Select Dealer_Id,SUM(Case When ISNUMERIC(Warranty_Parts_Amount)=1
+    THEN CAST(Warranty_Parts_Amount AS Float)
+    ELSE NULL
+    END)+SUM(Case When ISNUMERIC(Warranty_Labour_Amount)=1
+    THEN CAST(Warranty_Labour_Amount AS Float)
+    ELSE NULL
+    END)+SUM(Case When ISNUMERIC(Warranty_Misc_Amount)=1
+    THEN CAST(Warranty_Misc_Amount AS Float)
+    ELSE NULL
+    END)
+    From DS3
+    Group By Dealer_Id
+    Order By SUM(Case When ISNUMERIC(Warranty_Parts_Amount)=1
+    THEN CAST(Warranty_Parts_Amount AS Float)
+    ELSE NULL
+    END)+SUM(Case When ISNUMERIC(Warranty_Labour_Amount)=1
+    THEN CAST(Warranty_Labour_Amount AS Float)
+    ELSE NULL
+    END)+SUM(Case When ISNUMERIC(Warranty_Misc_Amount)=1
+    THEN CAST(Warranty_Misc_Amount AS Float)
+    ELSE NULL
+    END) Desc
 
 
+Output Obtained
+```
+
+11457	2057178.22006432
+15774	1709783.72614024
+7335	1542495.35100662
+11511	1368467.23904657
+33078	1365009.84252058
+9774	1298643.06703272
+5415	1276889.60383188
+
+```
+
+Further analysing above results for top 3 dealers
+
+    Select Model_Year,Make_Name,Count(*)
+    From DS3 
+    Where Dealer_Id='11457' and (Case When ISNUMERIC(Warranty_Parts_Amount)=1
+    THEN CAST(Warranty_Parts_Amount AS Float)
+    ELSE NULL
+    END+Case When ISNUMERIC(Warranty_Labour_Amount)=1
+    THEN CAST(Warranty_Labour_Amount AS Float)
+    ELSE NULL
+    END+Case When ISNUMERIC(Warranty_Misc_Amount)=1
+    THEN CAST(Warranty_Misc_Amount AS Float)
+    ELSE NULL
+    END)!=0
+    Group By Model_Year,Make_Name
+    Order By Count(*) Desc
+
+Output Obtained
+```
+2010	VOLKSWAGEN	2319
+2009	VOLKSWAGEN	1907
+2011	VOLKSWAGEN	1841
+2007	VOLKSWAGEN	1339
+2008	VOLKSWAGEN	1168
+```
+
+    Select Model_Year,Make_Name,Count(*)
+    From DS3 
+    Where Dealer_Id='15774' and (Case When ISNUMERIC(Warranty_Parts_Amount)=1
+    THEN CAST(Warranty_Parts_Amount AS Float)
+    ELSE NULL
+    END+Case When ISNUMERIC(Warranty_Labour_Amount)=1
+    THEN CAST(Warranty_Labour_Amount AS Float)
+    ELSE NULL
+    END+Case When ISNUMERIC(Warranty_Misc_Amount)=1
+    THEN CAST(Warranty_Misc_Amount AS Float)
+    ELSE NULL
+    END)!=0
+    Group By Model_Year,Make_Name
+    Order By Count(*) Desc
+
+Output Obtained
+```
+2011	NISSAN	2895
+2012	NISSAN	2312
+2010	NISSAN	1152
+2008	NISSAN	636
+2006	NISSAN	612
+```
+
+    Select Model_Year,Make_Name,Count(*)
+    From DS3 
+    Where Dealer_Id='7335' and (Case When ISNUMERIC(Warranty_Parts_Amount)=1
+    THEN CAST(Warranty_Parts_Amount AS Float)
+    ELSE NULL
+    END+Case When ISNUMERIC(Warranty_Labour_Amount)=1
+    THEN CAST(Warranty_Labour_Amount AS Float)
+    ELSE NULL
+    END+Case When ISNUMERIC(Warranty_Misc_Amount)=1
+    THEN CAST(Warranty_Misc_Amount AS Float)
+    ELSE NULL
+    END)!=0
+    Group By Model_Year,Make_Name
+    Order By Count(*) Desc
+
+Output Obtained
+```
+2011	NISSAN	3071
+2010	NISSAN	2393
+2009	NISSAN	2035
+2008	NISSAN	1828
+2006	NISSAN	1456
+```
+
+On analysing above results, it can be clearly seen that **NISSAN** customers have the maximum warranty amount.So two factors may contribute to these results, Either NISSAN offers longer Warranty_Period customers are willing to pay more for extended warranty period, as we can see that car with even Model Year 2007
 
 
 
