@@ -49,14 +49,14 @@ bcp DW.dbo.Dummy_Table in “/home/ubuntu/Downloads/DataDocument” -f Char.fmt 
 |Raw_Dealer_Operation_Code   	|Raw_Dealer_Operation_Code     	|Depicts the Operation code by Dealer,but following hypothesis shows that with change in part number,Raw_Dealer_Operation_Code changes    	|Varchar(8000)   	|[Raw Dealer Operation Code](#RawOpCode)   	|
 |Customer_Labor_Amount   	|Customer_Labor_Amount   	|Holds the value of Customer share of Labour amount,but following hypothesis is not true,hence it is not valid for all the data    	|Varchar(8000)   	|[Customer Labour Amount Hypothesis](#CusLabAmo)   	|
 |Customer_Parts_Amount   	|Customer_Parts_Amount   	|Holds the value of Customer share of Parts amount,but following hypothesis is not true,hence it is not valid for all the data   	|Varchar(8000)   	|[Customer Parts Amount Hypothesis](#CusParAmo)   	|
-|Customer_Misc_Amount   	|Customer_Misc_Amount   	|   	|Varchar(8000)   	|   	|
+|Customer_Misc_Amount   	|Customer_Misc_Amount   	|Amount which is not included in Parts and Labour section   	|Varchar(8000)   	|   	|
 |Warranty_Parts_Amount   	|Warranty_Parts_Amount   	|Holds the value of Warranty share of Parts amount,but folllowing hypothesis is not true,hence it is not valid for all the data   	|Varchar(8000)   	| [Warranty Parts Amount Hypothesis](#WarrParAmo)  	|
 |Warranty_Labor_Amount   	|Warranty_Labor_Amount   	| Holds the value of Warranty share of Labour amount,but following hypothesis is not true,hence it is not valid for all the data  	|Varchar(8000)   	|[Warranty Labour Amount Hypothesis](#WarrLabAmo)   	|
-|Warranty_Misc_Amount   	|Warranty_Misc_Amount   	|   	|Varchar(8000)   	|   	|
+|Warranty_Misc_Amount   	|Warranty_Misc_Amount   	|Amount which is not included in Parts and Labour section  	|Varchar(8000)   	|   	|
 |Internal_Labor_Amount   	|Internal_Labor_Amount   	|Holds the value of that amount which is not included in Labour_Amount and Warranty_Labour,but following hypothesis is not true,hence it is not valid for all the data   	|Varchar(8000)   	|[Internal Labour Amount Hypothesis](#IntLabAmo)   	|
 |Internal_Parts_Amount   	|Internal_Parts_Amount   	|Holds the value of that amount which is not included in Labour_Parts and Warranty_Parts,but following hypothesis is not true,hence it is not valid for all the data   	|Varchar(8000)   	|[Internal Parts Amount Hypothesis](#IntParAmo)   	|
-|Internal_Misc_Amount   	|Internal_Misc_Amount   	|   	|Varchar(8000)   	|   	|
-|Email_Address   	|Email_Address   	|Holds the information of the email address of customer   	|Varchar(8000)   	|   	|
+|Internal_Misc_Amount   	|Internal_Misc_Amount   	|Amount which is not included in Parts and Labour section   	|Varchar(8000)   	|   	|
+|Email_Address   	|Email_Address   m	|Holds the information of the email address of customer   	|Varchar(8000)   	|   	|
 |Model_Year   	|Model_Year   	|Holds the information of year in which vehicle was manufactured   	|Varchar(8000)   	|   	|
 |Make_Name   	|Make_Name   	|Holds the information of the maunfacturer of vehicle   	|Varchar(8000)   	|   	|
 |Customer_First_Name   	|Customer_First_Name   	|Holds the first name of customer   	|Varchar(8000)   	|   	|
@@ -65,7 +65,7 @@ bcp DW.dbo.Dummy_Table in “/home/ubuntu/Downloads/DataDocument” -f Char.fmt 
 |Description_2   	|Description_2   	|Provides Additional Details of operation Performed   	|Varchar(8000)   	|[Description Hupothesis](#Description)   	|
 |Labor_Per_Op   	|Labor_Per_Op   	|Represents the actual amount of labour employed by dealer, but following hypothesis does not prove this information	|Varchar(8000)   	|[Label Per Op Hypothesis](#LabPerOp)  	|
 |Parts_Per_Op   	|Parts_Per_Op   	|Represents tha actual cost of parts used per operation by dealer   	|Varchar(8000)   	| [Parts Per Op Hypothesis](#ParPerOp) 	|
-|FileName   	|FileName   	|   	|Varchar(8000)   	|   	|
+|FileName   	|FileName   	|Represents the name of file which holds the infromation   	|Varchar(8000)   	|   	|
 |File_Mtime   	|File_Mtime   	|Provides the details about the last time when file was modified   	|Varchar(8000)   	|   	|
 |   	|   	|   	|Varchar(8000)   	|   	|
 |   	|   	|   	|Varchar(8000)   	|   	|
@@ -741,50 +741,188 @@ On analysing above data,it can be clearly seen that,this dealer caters to about 
 Graph of Top 5 Dealer based on Number of Technicians is present <>
 
 #####*Query To Find Labour Time For Common Occuring OpCode*
+
+*Validating Hypothesis*
+
+*Requirements*
+
+Table which will be used to determine that Op_Code which is present in all dealers.
+
+Another table which will be used to capture Car details for result analysis
+
+Also we will have modify **split** function which is being used in previous queries in order to obtain Labor_Per_Op for correspoing Op_Code
+
+    CREATE FUNCTION [dbo].[Split1](@String varchar(8000),@String1 varchar(8000), @Delimiter char(1))     
+    Returns @temptable TABLE (items varchar(8000),items2 varchar(8000))     
+    As     
+    Begin     
+        Declare @idx int 
+        Declare @idx1 int   
+        Declare @slice varchar(8000)
+        Declare @slice1 varchar(8000)     
+    
+        Select @idx = 1  
+        Select @idx1= 1  
+            If len(@String)<1 or @String is null or LEN(@String1)<1 or @String1 is null  return     
+    
+        While @idx!= 0 and @idx1!= 0   
+        Begin     
+            Set @idx = charindex(@Delimiter,@String)
+            Set @idx1 = charindex(@Delimiter,@String1)     
+            If @idx!=0     
+                Set @slice = left(@String,@idx - 1)     
+            Else     
+                Set @slice = @String     
+        
+            If @idx1!=0     
+                Set @slice1 = left(@String1,@idx1 - 1)     
+            else     
+                Set @slice1= @String1     
+        
+        
+        
+        
+            If(len(@slice)>0 and Len(@slice1)>0)
+                Insert Into @temptable(Items,items2) values(@slice,@slice1)     
+
+            set @String = right(@String,len(@String) - @idx)
+            set @String1 = right(@String1,len(@String1) - @idx1)     
+            if len(@String) = 0 or len(@String1)= 0 break     
+        end 
+    return     
+    end 
+
+
+
 **Checking If Same Op_Codes Exist For Every Code In Order To Calculate Laboue_Time** 
 
-    Create Table #SecondTemp
-      (
-      Dealer_Id INT,
-      Op_Codes VARCHAR(8000)
-      )
-
-      Select 
-        Dealer_Id,Op_Codes From Dummy Table 
-        Group by Op_Codes,Dealer_Id 
-        Order by Dealer_Id
+Inserting values in table for Labor_Per_Op and corresponding Op_Code    
     
+    Insert into LTime  Select Dealer_Id,(Case When ISNUMERIC(i.items)=1
+    THEN CAST(i.items AS Float)
+    ELSE NULL
+    END),(Case When ISNUMERIC(i.items2)=1
+    THEN CAST(i.items2 AS Float)
+    ELSE NULL
+    END)
+    From DS4 t1
+    Outer apply dbo.split1(t1.Op_Codes,t1.Laber_Per_Op, '^')i order by Dealer_Id
+
+Obtaining value for Op_Code
+
+    Declare @val int
+    Set @val=95
+    Select  Distinct(t11.Op_Code) from LTime
+    As t11 where 
+    @val=(Select Count(Distinct(t22.Dealer_Id)) from LTime as t22 where t22.Op_Code=t11.Op_Code)
+
+```
+Output Obtained
+40
+36
+45
+39
+
+```
+
+Obtaning Labour_Per_Op for given Op_Code    
+      
     
-      Insert Into #SecondTemp 
-        Select Case When ISNUMERIC(Dealer_id)=1 THEN CAST(Dealer_Id as Int)ELSE NULL END , Op_Codes 
-        From Dummy Table 
-        Group by Op_Codes,Dealer_Id 
-        Order by Dealer_Id
+    Select Dealer_Id,SUM(Labour_Per_Op),COUNT(*) From LTime where Op_Code='40'
+    Group by Dealer_Id,Op_Code
+    Order By SUM(Labour_Per_Op) Desc
 
-      Select Op_Codes,COUNT(*) 
-      From #SecondTemp 
-      Group by Op_Codes Having COUNT(*)>91
+```
+Output Obtained
 
-#####*Query For Finding Labour_Time For The Deduced Op_Code*
+9774	4439102.53000011	117619
+7335	3315845.23000002	65462
+27081	3043957.01000004	33330
+5523	2185012.94999998	39308
+10833	1928047.61999988	33847
 
-Creating Table For Op_Code=40 Present In All The Dealer_Id
-       
-    Create Table #LabourTime
+```
+
+
+*Result Analysis*
+
+Analysing results for top 3 dealers having maximum sum of Labor_Per_Op
+
+Creating Table For capturing car details
+
+    Create Table Capture_Car 
     (
-    Dealer_Id INT,
-    Labour_Time Float
+    Car_Name VARCHAR(8000),
+    Car_Model VARCHAR(8000),
+    Car_Year VARCHAR(8000) 
     )
-    Insert Into #LabourTime Select distinct Dealer_Id,Labour_Time From DS3 where Op_Codes='40'
 
-    Insert into #LabourTime 
-      Select  Dealer_Id,SUM(CASE WHEN ISNUMERIC(Labour_Time)=1 THEN CONVERT(FLOAt,Labour_Time)ELSE NULL END) 
-      From Dummt Table 
-      Where Op_Codes='40' 
-      Group by Dealer_Id
 
-Delete From #LabourTime
 
-    Select * from #LabourTime
+    Insert into Capture_Car Select Model_Name,Make_Name,Model_year from DS3 where Op_Codes='40' and Dealer_Id='9774'
+    Group By Model_year,Description_1,Labor_Per_Op,Model_Name,Make_Name
+    Order By Labor_Per_Op Desc
+
+    Insert Into Capture_Car Select Model_Name,Make_Name,Model_year from DS3 where Op_Codes='40' and Dealer_Id='7335'
+    Group By Model_year,Description_1,Labor_Per_Op,Model_Name,Make_Name
+    Order By Labor_Per_Op Desc
+
+    Insert Into Capture_Car Select Model_Name,Make_Name,Model_year from DS3 where Op_Codes='40' and Dealer_Id='27081'
+    Group By Model_year,Description_1,Labor_Per_Op,Model_Name,Make_Name
+    Order By Labor_Per_Op Desc
+
+
+Determing Car_Model which has most number of Op_Codes among these 3 top dealers
+
+    Select Car_Model,COUNT(*)
+    From Capture_Car
+    Group By Car_Model
+    Order By COUNT(*) Desc
+
+Output Obtained
+```
+NISSAN
+VOLKSWAGEN
+SUBARU
+DODGE
+FORD
+```
+Determining Car On the basis of Model Year
+    
+    Select Car_Model,Car_Year
+    From Capture_Car
+    Group By Car_Model,Car_Year
+    Order By COUNT(*) Desc
+
+Output Obtained
+```
+NISSAN	2010
+NISSAN	2011
+NISSAN	2009
+NISSAN	2008
+NISSAN	2006
+```
+
+Another analysis is checking the Description of operation performed which consumes maximum Label_Per_Op
+
+    Select Technician_Num,Description_1,Laber_Per_Op,Model_Name,Model_Year from DS4 where Op_Codes='40' and   Dealer_Id='7335'
+    Order By Laber_Per_Op Desc
+
+```
+Output Obtained
+
+140	MISC. MAINTENANCE	99.99	QUEST	2002
+883	U/C PREP RECONDITION	99.95	SIENNA	2008
+851	STRAIGHT TIME	97.2	ROUTAN	2009
+851	STRAIGHT TIME	97.2	ROUTAN	2009
+966	MISC. MAINTENANCE	96	BLAZER	2002
+966	MISC. MAINTENANCE	96	BLAZER	2002
+381	MISC. MAINTENANCE	96	SENTRA	2003
+```
+
+On analysing data, it can be deduced that **Misc Maintenace* Operation consumes maximum amount of Label_Per_Op
+
+
 
 #####*Query For Determining Number Of Distinct Vehicles*
 
