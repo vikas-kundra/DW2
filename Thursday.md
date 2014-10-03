@@ -63,8 +63,8 @@ bcp DW.dbo.Dummy_Table in “/home/ubuntu/Downloads/DataDocument” -f Char.fmt 
 |Customer_Last_Name   	|Customer_Last_Name   	|Holds the last name of customer   	|Varchar(8000)   	|   	|
 |Description_1   	|Description_1   	|Describes about the operations performed   	|Varchar(8000)   	|   	|
 |Description_2   	|Description_2   	|Provides Additional Details of operation Performed   	|Varchar(8000)   	|[Description Hupothesis](#Description)   	|
-|Labor_Per_Op   	|Labor_Per_Op   	|   	|Varchar(8000)   	|   	|
-|Parts_Per_Op   	|Parts_Per_Op   	|   	|Varchar(8000)   	|   	|
+|Labor_Per_Op   	|Labor_Per_Op   	|Represents the actual amount of labour employed by dealer, but following hypothesis does not prove this information	|Varchar(8000)   	|[Label Per Op Hypothesis](#LabPerOp)  	|
+|Parts_Per_Op   	|Parts_Per_Op   	|Represents tha actual cost of parts used per operation by dealer   	|Varchar(8000)   	| [Parts Per Op Hypothesis](#ParPerOp) 	|
 |FileName   	|FileName   	|   	|Varchar(8000)   	|   	|
 |File_Mtime   	|File_Mtime   	|Provides the details about the last time when file was modified   	|Varchar(8000)   	|   	|
 |   	|   	|   	|Varchar(8000)   	|   	|
@@ -489,6 +489,175 @@ Finding out rows present in one table but not in other
                     Select Dealer_Id,Description_First 
                     From Des1
                     Where Des1.Dealer_Id=Des1.Dealer_Id and Des1.Description_First=Des2.Description_First)
+
+
+#####10.<a name="LabPerOp"></a> *Hypothesis to  ber proven is that there exists some relation between Label_Per_Op and Labour_Amount*
+
+*Validating Hypothesis*
+
+*Requirements*
+
+Table which will hold Labour_Amount and Label_Per_Op.
+
+--Creating Table
+    
+    Create Table Lab_Per_Op12
+    (
+    Dealer_Id VARCHAR(8000),
+    Ro_Number VARCHAR(8000),
+    RO_Close_Date VARCHAR(8000),
+    Customer_Num_Deal VARCHAR(8000),
+    Labour_Amount FLOAT,
+    Laber_Per_Op FLOAT
+    )
+
+
+
+--Creating table to capture Label_Per_Op and Labour_Amount
+
+    Insert Into Lab_Per_Op12  Select Dealer_Id,Ro_Number,Ro_Close_Date,Customer_Num_Deal,Case When           ISNUMERIC(Labor_Amount)=1
+    THEN CAST(Labor_Amount AS Float)
+    ELSE NULL
+    END,Sum(Case When ISNUMERIC(i.items)=1
+    THEN CAST(i.items AS Float)
+    ELSE NULL
+    END)
+    From DS4 t1
+    outer apply dbo.split(t1.Laber_Per_Op, '^')i  group by Dealer_Id,Ro_Number,	Ro_Close_Date,	Customer_Num_Deal	,Customer_Full_Name,	County	,STATE1,	Zip,	Stand_Add,	VIN,	Milege,	Technician_Num,	Op_Codes,	Pay_Type,	Parts_Amount,	Labor_Amount,	Parts_Num,	Ro_Total,	Customer_Name_Type,Ro_Line_Num,Labor_Time,	Vehicle_Cat,	Raw_Dealer_Operation_Code,	Customer_Labour_Amount,	Customer_Parts_Amount,	Customer_Misc_Amount,Warranty_Lab_Amount,	Warr_Parts_Amount,	Warr_Misc_Amount,	Internal_Labo_Amount,	Internal_Parts_Amount,	Intrnal_Misc_Amount,	Model_Year,	Make_Name,Model_Name	,Email_Address,	Customer_First_Name	,Customer_Last_Name,	Exception,	Description_1,	Description_2,	Laber_Per_Op	,Parts_Per_Op	,Unknown_Per_Op	,File_Mtime	
+
+
+
+--Creating table to calculate Ratio between these columns
+
+    Create Table #tempLaborSecond
+    (
+    Ratio Float
+    )
+    
+    Insert Into #tempLaborSecond  Select Distinct(Laber_Per_Op/nullif(Labour_Amount, 0)) from Lab_Per_Op12  
+
+--Obtaining ratio
+
+    Select Distinct(CAST(Ratio as int)) from #tempLaborSecond order by (CAST(Ratio as int))
+```
+Output Obtained
+-282
+-184
+-103
+-102
+-87
+-85
+-80
+-71
+-58
+-44
+-38
+-33
+-31
+-30
+-28
+-27
+-26
+-25
+-23
+-22
+-21
+-20
+-19
+-18
+-17
+-16
+-13
+-12
+```
+
+On analysing this output,it becomes clear that ratio between these two columns is not fixed, Hence
+above hypothesis is false
+
+#####11.<a name="ParPerOp"></a> *Hypothesis to  ber proven is that there exists some relation between Label_Per_Op and Labour_Amount*
+
+*Validating Hypothesis*
+
+*Requirements*
+
+Table which will hold Labour_Amount and Label_Per_Op.
+
+--Creating Table
+    
+    Create Table Parts_Per_Operat
+    (
+    Dealer_Id VARCHAR(8000),
+    Ro_Number VARCHAR(8000),
+    RO_Close_Date VARCHAR(8000),
+    Customer_Num_Deal VARCHAR(8000),
+    Parts_Amount FLOAT,
+    Parts_Per_Op FLOAT
+    )
+
+
+
+--Creating table to capture Parts_Per_Op and Parts_Amount
+
+    Insert into Parts_Per_Operat  Select Dealer_Id,Ro_Number,Ro_Close_Date,Customer_Num_Deal,Case When ISNUMERIC(Parts_Amount)=1
+    THEN CAST(Parts_Amount AS Float)
+    ELSE NULL
+    END,Sum(Case When ISNUMERIC(i.items)=1
+    THEN CAST(i.items AS Float)
+    ELSE NULL
+    END)
+    From DS4 t1
+    outer apply dbo.split(t1.Parts_Per_op, '^')i  group by Dealer_Id,Ro_Number,	Ro_Close_Date,	Customer_Num_Deal	,Customer_Full_Name,	County	,STATE1,	Zip,	Stand_Add,	VIN,	Milege,	Technician_Num,	Op_Codes,	Pay_Type,	Parts_Amount,	Labor_Amount,	Parts_Num,	Ro_Total,	Customer_Name_Type,Ro_Line_Num,Labor_Time,	Vehicle_Cat,	Raw_Dealer_Operation_Code,	Customer_Labour_Amount,	Customer_Parts_Amount,	Customer_Misc_Amount,Warranty_Lab_Amount,	Warr_Parts_Amount,	Warr_Misc_Amount,	Internal_Labo_Amount,	Internal_Parts_Amount,	Intrnal_Misc_Amount,	Model_Year,	Make_Name,Model_Name	,Email_Address,	Customer_First_Name	,Customer_Last_Name,	Exception,	Description_1,	Description_2,	Laber_Per_Op	,Parts_Per_Op	,Unknown_Per_Op	,File_Mtime	
+
+
+
+--Creating table to calculate Ratio between these columns
+
+    Create Table #tempPartSecond
+    (
+    Ratio Float
+    )
+   
+    Insert into #tempPartSecond  Select Distinct(Parts_Per_Op/nullif(Parts_Amount, 0)) from   Parts_Per_Operat
+
+--Obtaining ratio
+  
+    Select Distinct(CAST(Ratio as int)) from #tempPartSecond order by (CAST(Ratio as int))
+
+```
+Output Obtained
+---49
+-39
+-12
+-10
+-9
+-3
+-2
+0
+1
+2
+3
+4
+5
+6
+7
+8
+11
+19
+26
+31
+39
+74
+90
+306
+348
+390
+```
+On analysing this output,it becomes clear that ratio between these two columns is not fixed, Hence
+above hypothesis is false
+
+
+
+
 
 ###Different Criteria For Calculating Top Dealer
 
